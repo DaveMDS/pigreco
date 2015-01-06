@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 
 ##############################################################################
 # Unbounded Spigot Algorithms for the Digits of Pi
@@ -38,8 +40,10 @@ from efl.elementary.window import StandardWindow
 from efl.elementary.label import Label
 from efl.elementary.entry import Entry
 
+
 COLS = 40
 ROWS = 15
+
 
 class PigrecoThread(Process):
     def __init__(self, queue):
@@ -55,9 +59,9 @@ class PigrecoThread(Process):
     def run(self):
         count = 0
 
-        self._generator.next()
+        next(self._generator)
         while 1:
-            line = ''.join([self._generator.next() for j in range(COLS)])
+            line = ''.join([next(self._generator) for j in range(COLS)])
             self._queue.put((count, line))
             count += COLS
 
