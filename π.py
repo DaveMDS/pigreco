@@ -57,13 +57,10 @@ class PigrecoThread(Process):
         self._stop.set()
 
     def run(self):
-        count = 0
-
         next(self._generator)
         while 1:
             line = ''.join([next(self._generator) for j in range(COLS)])
-            self._queue.put((count, line))
-            count += COLS
+            self._queue.put(line)
 
             if self._stop.is_set():
                 break
@@ -134,6 +131,7 @@ class TG(evas.Textgrid):
 class Pigreco(object):
     def __init__(self):
         self.lines = []
+        self.count = 0
         self.queue = Queue()
 
         self.win = PiWin(self)
@@ -153,12 +151,13 @@ class Pigreco(object):
         if self.timer.interval > 0.1:
             self.timer.interval -= 0.02
 
-        count, line = self.queue.get()
-        print(self.queue.qsize(), count, line)
+        line = self.queue.get()
+        self.count += COLS
+        print(self.queue.qsize(), self.count, line)
 
         self.lines.append(line)
         self.win.tg.redraw()
-        self.win.title = 'π  (calculated decimals: %d)' % count
+        self.win.title = 'π  (decimals: %d)' % self.count
 
         return ecore.ECORE_CALLBACK_RENEW
 
