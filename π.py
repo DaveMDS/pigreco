@@ -41,7 +41,7 @@ from efl.elementary.label import Label
 from efl.elementary.entry import Entry
 
 
-COLS = 40
+COLS = 50
 ROWS = 15
 
 
@@ -81,7 +81,7 @@ class PiWin(StandardWindow):
         self.resize_object_add(lb)
         lb.show()
 
-        tg = TG(self)
+        tg = TG(self, app.lines)
         self.resize_object_add(tg)
         tg.show()
 
@@ -91,7 +91,7 @@ class PiWin(StandardWindow):
 
 
 class TG(evas.Textgrid):
-    def __init__(self, parent):
+    def __init__(self, parent, lines):
         evas.Textgrid.__init__(self, parent.evas,
                                size=(COLS, ROWS),
                                font=("Monospace", 15))
@@ -110,7 +110,7 @@ class TG(evas.Textgrid):
                 cell.bg = 0
             self.cellrow_set(row_count, row)
 
-        self.lines = []
+        self.lines = lines
 
     def redraw(self, beg_line=None):
         if beg_line is None:
@@ -133,28 +133,37 @@ class TG(evas.Textgrid):
 
 class Pigreco(object):
     def __init__(self):
-        self.win = PiWin(self)
+        self.lines = []
         self.queue = Queue()
+
+        self.win = PiWin(self)
+        
         self.thread = PigrecoThread(self.queue)
         self.thread.start()
 
-        self.win.tg.lines.append('3.' + ' ' * (COLS-2))
+        self.lines.append('3.' + ' ' * (COLS-2))
+        self.win.tg.redraw()
 
-        ecore.Timer(0.1, self._timer_cb)
+        self.timer = ecore.Timer(1.0, self._timer_cb)
 
     def _timer_cb(self):
         if self.queue.empty():
             return ecore.ECORE_CALLBACK_RENEW
 
+        if self.timer.interval > 0.1:
+            self.timer.interval -= 0.02
+
         count, line = self.queue.get()
         print(self.queue.qsize(), count, line)
 
-        self.win.tg.line_append(line)
+        self.lines.append(line)
+        self.win.tg.redraw()
         self.win.title = 'π  (calculated decimals: %d)' % count
 
         return ecore.ECORE_CALLBACK_RENEW
 
     def quit(self):
+        self.timer.delete()
         self.thread.stop()
         self.thread.join()
         elementary.exit()
