@@ -31,14 +31,20 @@ from multiprocessing import Process, Queue, Event
 
 from efl import ecore
 from efl import evas
-from efl.evas import EVAS_TEXTGRID_PALETTE_STANDARD, \
-    EVAS_HINT_EXPAND, EXPAND_BOTH, EXPAND_HORIZ, EXPAND_VERT, \
-    EVAS_HINT_FILL, FILL_BOTH, FILL_HORIZ, FILL_VERT
+from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL, \
+    EVAS_TEXTGRID_PALETTE_STANDARD
 
 from efl import elementary
 from efl.elementary.window import StandardWindow
 from efl.elementary.label import Label
 from efl.elementary.entry import Entry
+
+EXPAND_BOTH = EVAS_HINT_EXPAND, EVAS_HINT_EXPAND
+EXPAND_HORIZ = EVAS_HINT_EXPAND, 0.0
+EXPAND_VERT = 0.0, EVAS_HINT_EXPAND
+FILL_BOTH = EVAS_HINT_FILL, EVAS_HINT_FILL
+FILL_HORIZ = EVAS_HINT_FILL, 0.5
+FILL_VERT = 0.5, EVAS_HINT_FILL
 
 
 COLS = 50
