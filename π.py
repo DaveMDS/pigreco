@@ -9,8 +9,7 @@ from efl import evas
 from efl import ecore
 from efl import elementary
 from efl.elementary.window import StandardWindow
-from efl.elementary.label import Label
-from efl.elementary.entry import Entry
+from efl.elementary.layout import Layout
 
 from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL
 
@@ -22,15 +21,15 @@ ROWS = 15
 class PiWin(StandardWindow):
     def __init__(self, app):
 
-        StandardWindow.__init__(self, "pigreco", "π", autodel=True)
+        StandardWindow.__init__(self, 'pigreco', 'π', autodel=True)
         self.callback_delete_request_add(lambda o: app.quit())
 
-        lb = Label(self, text="π", scale=15)
-        self.resize_object_add(lb)
-        lb.show()
+        self.layout = Layout(self, file=('theme.edj', 'pigreco/layout'))
+        self.resize_object_add(self.layout)
+        self.layout.show()
 
         tg = TG(self, app.lines)
-        self.resize_object_add(tg)
+        self.layout.part_content_set('textgrid.swallow', tg)
         tg.show()
 
         self.tg = tg
@@ -42,7 +41,7 @@ class TG(evas.Textgrid):
     def __init__(self, parent, lines):
         evas.Textgrid.__init__(self, parent.evas,
                                size=(COLS, ROWS),
-                               font=("Monospace", 15))
+                               font=('Monospace', 15))
 
         self.palette_set(evas.EVAS_TEXTGRID_PALETTE_STANDARD, 0, 0, 0, 0, 100)
         self.palette_set(evas.EVAS_TEXTGRID_PALETTE_STANDARD, 1, 150, 150, 150, 255)

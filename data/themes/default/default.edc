@@ -1,0 +1,69 @@
+
+//// GENERIC MACROS ///////////////////////////////////////////////////////////
+#define ASPECT_FILL(_ASPECT) \
+   aspect: _ASPECT _ASPECT; aspect_preference: NONE;
+#define TILED_PATTERN(_WIDTH, _HEIGHT) \
+   fill { size { relative: 0.0 0.0; offset: _WIDTH _HEIGHT; } }
+#define TILED_HORIZ(_WIDTH) \
+   fill { size { relative: 0.0 1.0; offset: _WIDTH 0; } }
+#define FIXED_SIZE(_WIDTH, _HEIGHT) \
+   min: _WIDTH _HEIGHT; max: _WIDTH _HEIGHT; fixed: 1 1;
+#define DBG_SHOW(_PART, _R, _G, _B) \
+   part { name: "dbg_show"_PART; \
+      type: RECT; mouse_events: 0; \
+      description { state: "default" 0.0; \
+         rel1.to: _PART; rel2.to: _PART; \
+         color: _R _G _B 50; } }
+
+
+images {
+   // image: "background.jpg" COMP;
+}
+
+// fonts {
+   // font: "Cuprum.otf" "Cuprum";
+// }
+
+
+collections {
+
+   group { name: "pigreco/layout";
+
+      parts {
+
+         part { name: "bg";
+            type: RECT;
+            description { state: "default" 0.0;
+               color: 0 0 0 255;
+            }
+         }
+
+         part { name: "bg.pi";
+            type: TEXT;
+            description { state: "default" 0.0;
+               color: 255 255 255 100;
+               text {
+                  text: "π";
+                  font: "Sans";
+                  size: 200;
+               }
+            }
+         }
+
+         part { name: "textgrid.swallow";
+            type: SWALLOW;
+            description { state: "default" 0.0;
+            }
+         }
+
+         // program { name: "backdrop_show_2"; /* API */
+            // signal: "backdrop,show,2";
+            // source: "emc";
+            // action: STATE_SET "bd2" 0.00;
+            // transition: LINEAR 1.0;
+            // target: "bg.clip1";
+            // target: "bg.clip2";
+         // }
+      }
+   }
+}
