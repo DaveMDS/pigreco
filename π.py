@@ -26,6 +26,8 @@ parser.add_argument('-c', dest='cols', type=int, default=50,
                     help='Number of columns')
 parser.add_argument('-r', dest='rows', type=int, default=20,
                     help='Number of rows')
+parser.add_argument('-t', dest='theme', type=str, default='theme.edj',
+                    help='Edje theme file (default: theme.edj)')
 
 args = parser.parse_args()
 COLS = args.cols
@@ -38,7 +40,7 @@ class PiWin(StandardWindow):
         StandardWindow.__init__(self, 'pigreco', 'π', autodel=True)
         self.callback_delete_request_add(lambda o: app.quit())
 
-        self.layout = Layout(self, file=('theme.edj', 'pigreco/layout'))
+        self.layout = Layout(self, file=(args.theme, 'pigreco/layout'))
         self.resize_object_add(self.layout)
         self.layout.show()
 
