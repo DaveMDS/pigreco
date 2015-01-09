@@ -11,11 +11,12 @@ from efl import elementary
 from efl.elementary.window import StandardWindow
 from efl.elementary.layout import Layout
 
-from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL
+from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL, \
+    EVAS_TEXTGRID_PALETTE_STANDARD as PALETTE
 
 
 COLS = 50
-ROWS = 15
+ROWS = 20
 
 
 class PiWin(StandardWindow):
@@ -28,7 +29,10 @@ class PiWin(StandardWindow):
         self.resize_object_add(self.layout)
         self.layout.show()
 
-        tg = TG(self, app.lines)
+        digits_color = self.layout.data_get('digits_color')
+        digits_color = map(int, digits_color.split())
+
+        tg = TG(self, app.lines, digits_color)
         self.layout.part_content_set('textgrid.swallow', tg)
         tg.show()
 
@@ -38,13 +42,15 @@ class PiWin(StandardWindow):
 
 
 class TG(evas.Textgrid):
-    def __init__(self, parent, lines):
+    def __init__(self, parent, lines, color):
         evas.Textgrid.__init__(self, parent.evas,
                                size=(COLS, ROWS),
-                               font=('Monospace', 15))
+                               font=('Sans', 15),
+                               # font_source='Code New Roman.otf',
+                               )
 
-        self.palette_set(evas.EVAS_TEXTGRID_PALETTE_STANDARD, 0, 0, 0, 0, 100)
-        self.palette_set(evas.EVAS_TEXTGRID_PALETTE_STANDARD, 1, 150, 150, 150, 255)
+        self.palette_set(PALETTE, 0, 0, 0, 0, 0) # bg
+        self.palette_set(PALETTE, 1, *color)# fg
 
         pxw, pxh = self.cell_size
         self.size_hint_min = (pxw * COLS, pxh * ROWS)

@@ -17,53 +17,61 @@
 
 
 images {
-   // image: "background.jpg" COMP;
+   image: "bg.jpg" COMP;
+   image: "pi.png" COMP;
+   image: "pi_shad.png" COMP;
 }
-
-// fonts {
-   // font: "Cuprum.otf" "Cuprum";
-// }
 
 
 collections {
 
    group { name: "pigreco/layout";
 
+      data {
+         item: "digits_color" "200 200 200 255";
+      }
+
       parts {
 
          part { name: "bg";
-            type: RECT;
+            type: IMAGE;
             description { state: "default" 0.0;
-               color: 0 0 0 255;
+               image.normal: "bg.jpg";
+               
+            }
+         }
+
+         part { name: "bg.pi_shad";
+            type: IMAGE;
+            description { state: "default" 0.0;
+               image.normal: "pi_shad.png";
+               aspect: 1 1;
+               aspect_preference: BOTH;
+               rel1.to: "bg.pi";
+               rel2.to: "bg.pi";
             }
          }
 
          part { name: "bg.pi";
-            type: TEXT;
+            type: IMAGE;
             description { state: "default" 0.0;
-               color: 255 255 255 100;
-               text {
-                  text: "π";
-                  font: "Sans";
-                  size: 200;
-               }
+               image.normal: "pi.png";
+               color: 150 150 150 150;
+               aspect: 1 1;
+               aspect_preference: BOTH;
+               rel1.relative: 0.0 0.2;
+               rel2.relative: 1.0 0.8;
             }
          }
 
          part { name: "textgrid.swallow";
             type: SWALLOW;
             description { state: "default" 0.0;
+               rel1.offset: 6 6;
+               rel2.offset: -7 -7;
             }
          }
 
-         // program { name: "backdrop_show_2"; /* API */
-            // signal: "backdrop,show,2";
-            // source: "emc";
-            // action: STATE_SET "bd2" 0.00;
-            // transition: LINEAR 1.0;
-            // target: "bg.clip1";
-            // target: "bg.clip2";
-         // }
       }
    }
 }
