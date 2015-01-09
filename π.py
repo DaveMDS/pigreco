@@ -4,6 +4,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os
+import argparse
 
 from efl import evas
 from efl import ecore
@@ -15,8 +16,20 @@ from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL, \
     EVAS_TEXTGRID_PALETTE_STANDARD as PALETTE
 
 
-COLS = 50
-ROWS = 20
+
+parser = argparse.ArgumentParser(prog='pigreco',
+                                 description='Fancy pi digits calculator.')
+parser.add_argument('-g', dest='generator',  type=str,
+                    default='generator_spigot.py',
+                    help='Script to use for digits calculation')
+parser.add_argument('-c', dest='cols', type=int, default=50,
+                    help='Number of columns')
+parser.add_argument('-r', dest='rows', type=int, default=20,
+                    help='Number of rows')
+
+args = parser.parse_args()
+COLS = args.cols
+ROWS = args.rows
 
 
 class PiWin(StandardWindow):
@@ -88,7 +101,7 @@ class TG(evas.Textgrid):
 
 
 class Pigreco(object):
-    def __init__(self):
+    def __init__(self, args):
         self.lines = []
         self.count = 0
         self.exe = None
@@ -101,7 +114,7 @@ class Pigreco(object):
         self.win.tg.redraw()
 
         self.timer = ecore.Timer(1.0, self._timer_cb)
-        self.generator_start('generator_spigot.py')
+        self.generator_start(args.generator)
 
     def generator_start(self, executable):
         self.exe = ecore.Exe('python %s %d' % (executable, COLS),
@@ -138,7 +151,7 @@ class Pigreco(object):
 if __name__ == "__main__":
     elementary.init()
 
-    app = Pigreco()
+    app = Pigreco(args)
     elementary.run()
 
     app.cleanup()
