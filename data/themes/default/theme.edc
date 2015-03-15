@@ -20,6 +20,12 @@ images {
    image: "bg.jpg" COMP;
    image: "pi.png" COMP;
    image: "pi_shad.png" COMP;
+   image: "icon_pause.png" COMP;
+   image: "icon_play.png" COMP;
+}
+
+externals {
+   external: "elementary";
 }
 
 
@@ -72,6 +78,81 @@ collections {
             }
          }
 
+         part { name: "controls_clip";
+            type: RECT;
+            description { state: "default" 0.0;
+               color: 255 255 255 0;
+            }
+            description { state: "visible" 0.0;
+               color: 255 255 255 255;
+            }
+         }
+         part { name: "scroll.slider";
+            type: EXTERNAL;
+            source: "elm/slider";
+            clip_to: "controls_clip";
+            description { state: "default" 0.0;
+               rel1 {
+                  to_x: "autoscroll_btn";
+               }
+               rel2 {
+                  to: "autoscroll_btn";
+                  relative: 1.0 0.0;
+               }
+               params {
+                  bool: "horizontal" 0;
+               }
+            }
+         }
+         part { name: "autoscroll_btn";
+            type: IMAGE;
+            clip_to: "controls_clip";
+            description { state: "default" 0.0;
+               max: 32 32;
+               align: 1.0 1.0;
+               image.normal: "icon_pause.png";
+            }
+            description { state: "paused" 0.0;
+               inherit: "default" 0.0;
+               image.normal: "icon_play.png";
+            }
+         }
+
+         part { name: "events";
+            type: RECT;
+            repeat_events: 1;
+            description { state: "default" 0.0;
+               color: 0 0 0 0;
+            }
+         }
+      }
+      programs {
+         program { // show controls
+            signal: "mouse,in"; source: "events";
+            action: STATE_SET "visible" 0.0;
+            transition: LINEAR 0.3;
+            target: "controls_clip";
+         }
+         program { // hide controls
+            signal: "mouse,out"; source: "events";
+            action: STATE_SET "default" 0.0;
+            transition: LINEAR 0.3;
+            target: "controls_clip";
+         }
+         program { // autoscroll toggle
+            signal: "mouse,down,1"; source: "autoscroll_btn";
+            action: SIGNAL_EMIT "autoscroll,toggle" "";
+         }
+         program { // autoscroll set play
+            signal: "autoscroll,play,set"; source: "";
+            action: STATE_SET "default";
+            target: "autoscroll_btn";
+         }
+         program { // autoscroll set play
+            signal: "autoscroll,pause,set"; source: "";
+            action: STATE_SET "paused";
+            target: "autoscroll_btn";
+         }
       }
    }
 }

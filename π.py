@@ -8,9 +8,11 @@ import argparse
 
 from efl import evas
 from efl import ecore
+from efl import edje
 from efl import elementary
 from efl.elementary.window import StandardWindow
 from efl.elementary.layout import Layout
+from efl.elementary.slider import Slider
 
 from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL, \
     EVAS_TEXTGRID_PALETTE_STANDARD as PALETTE
@@ -40,20 +42,66 @@ class PiWin(StandardWindow):
         StandardWindow.__init__(self, 'pigreco', 'π', autodel=True)
         self.callback_delete_request_add(lambda o: app.quit())
 
-        self.layout = Layout(self, file=(args.theme, 'pigreco/layout'))
-        self.resize_object_add(self.layout)
-        self.layout.show()
+        ly = Layout(self, file=(args.theme, 'pigreco/layout'))
+        ly.signal_callback_add('autoscroll,toggle', '',
+                               lambda a,s,d: self.autoscroll_toggle())
+        self.resize_object_add(ly)
+        ly.show()
 
-        digits_color = self.layout.data_get('digits_color')
+        digits_color = ly.data_get('digits_color')
         digits_color = map(int, digits_color.split())
 
         tg = TG(self, app.lines, digits_color)
-        self.layout.part_content_set('textgrid.swallow', tg)
+        ly.part_content_set('textgrid.swallow', tg)
         tg.show()
 
         self.tg = tg
+        self.layout = ly
         self.app = app
         self.show()
+
+        self.scroll_slider = ly.edje.part_external_object_get('scroll.slider')
+        self.scroll_slider.callback_changed_add(self._scroll_slider_changed)
+        self.scroll_slider.callback_slider_drag_start_add(self._scroll_drag_start)
+        self.scroll_slider.callback_slider_drag_stop_add(self._scroll_drag_stop)
+
+        self._scroll_timer = ecore.Timer(1.0, self._scroll_timer_cb)
+        self.autoscroll_paused = False
+
+    def shutdown(self):
+        self._scroll_timer.delete()
+        self.delete()
+        
+    def _scroll_timer_cb(self):
+        self.scroll_slider.min_max = (1, len(self.app.lines))
+        self.scroll_slider.value = self.tg.scroll_pos
+
+        if self._scroll_timer.interval > 0.1:
+            self._scroll_timer.interval -= 0.05
+
+        if not self.autoscroll_paused:
+            self.tg.scroll_rel(+1)
+            self.tg.redraw()
+
+        return ecore.ECORE_CALLBACK_RENEW
+
+    def _scroll_drag_start(self, sl):
+        self._scroll_timer.freeze()
+
+    def _scroll_drag_stop(self, sl):
+        self._scroll_timer.thaw()
+        
+    def _scroll_slider_changed(self, sl):
+        self.tg.scroll_to(int(sl.value))
+        self.tg.redraw()
+
+    def autoscroll_toggle(self):
+        if self.autoscroll_paused is True:
+            self.autoscroll_paused = False
+            self.layout.signal_emit('autoscroll,play,set', '')
+        else:
+            self.autoscroll_paused = True
+            self.layout.signal_emit('autoscroll,pause,set', '')
 
 
 class TG(evas.Textgrid):
@@ -101,7 +149,6 @@ class TG(evas.Textgrid):
         self.update_add(0, 0, COLS, ROWS)
 
 
-
 class Pigreco(object):
     def __init__(self, args):
         self.lines = []
@@ -115,7 +162,7 @@ class Pigreco(object):
         self.lines.append('3.' + ' ' * (COLS-2))
         self.win.tg.redraw()
 
-        self.timer = ecore.Timer(1.0, self._timer_cb)
+        
         self.generator_start(args.generator)
 
     def generator_start(self, executable):
@@ -130,21 +177,11 @@ class Pigreco(object):
         self.count += len(event.lines) * COLS
         self.win.title = 'π  - {:,} decimals'.format(self.count)
 
-    def _timer_cb(self):
-        if self.timer.interval > 0.1:
-            self.timer.interval -= 0.02
-
-        self.win.tg.scroll_rel(+1)
-        self.win.tg.redraw()
-
-        return ecore.ECORE_CALLBACK_RENEW
-
     def quit(self):
         elementary.exit()
 
     def cleanup(self):
-        if self.timer:
-            self.timer.delete()
+        self.win.shutdown()
         if self.exe:
             self.exe.terminate()
         
