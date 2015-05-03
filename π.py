@@ -4,6 +4,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import os
+import sys
 import argparse
 
 from efl import evas
@@ -165,8 +166,8 @@ class Pigreco(object):
         
         self.generator_start(args.generator)
 
-    def generator_start(self, executable):
-        self.exe = ecore.Exe('python %s %d' % (executable, COLS),
+    def generator_start(self, command):
+        self.exe = ecore.Exe('%s %s %d' % (sys.executable, command, COLS),
                              ecore.ECORE_EXE_PIPE_READ |
                              ecore.ECORE_EXE_PIPE_READ_LINE_BUFFERED)
         self.exe.on_data_event_add(self._generator_stdout)
