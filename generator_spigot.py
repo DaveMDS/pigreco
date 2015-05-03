@@ -24,8 +24,8 @@ def pi_decimal_generator():
 
 
 digits = pi_decimal_generator()
-digits.next()
+next(digits)
 while 1:
-    print(''.join([digits.next() for j in xrange(COLS)]))
+    print(''.join([next(digits) for j in range(COLS)]))
     sys.stdout.flush()
 
