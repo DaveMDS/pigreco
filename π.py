@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import os
 import sys
+import time
 import argparse
 
 from efl import evas
@@ -35,6 +36,24 @@ parser.add_argument('-t', dest='theme', type=str, default='theme.edj',
 args = parser.parse_args()
 COLS = args.cols
 ROWS = args.rows
+
+
+
+intervals = (
+    ('day', 'days',  60 * 60 * 24),
+    ('hour','hours', 60 * 60),
+    ('min', 'mins',  60),
+    ('sec', 'secs',  1),
+)
+
+def format_seconds(seconds):
+    L = list()
+    for sing, plur, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            L.append('{:.0f} {}'.format(value, plur if value > 1 else sing))
+    return ', '.join(L)
 
 
 class PiWin(StandardWindow):
@@ -167,6 +186,7 @@ class Pigreco(object):
         self.generator_start(args.generator)
 
     def generator_start(self, command):
+        self._start_time = self._line_time = time.time()
         self.exe = ecore.Exe('%s %s %d' % (sys.executable, command, COLS),
                              ecore.ECORE_EXE_PIPE_READ |
                              ecore.ECORE_EXE_PIPE_READ_LINE_BUFFERED)
@@ -175,8 +195,17 @@ class Pigreco(object):
 
     def _generator_stdout(self, exe, event):
         self.lines.extend(event.lines)
-        self.count += len(event.lines) * COLS
-        self.win.title = 'π  - {:,} decimals'.format(self.count)
+        num_digits = len(event.lines) * COLS
+        self.count += num_digits
+
+        now = time.time()
+        total_seconds = now - self._start_time
+        line_seconds = now - self._line_time
+        self._line_time = now
+
+        self.win.title = 'π  - {:,} decimals in {} ({:.2f} digits/secs)'.format(
+                         self.count, format_seconds(total_seconds),
+                         num_digits / line_seconds)
 
     def quit(self):
         elementary.exit()
