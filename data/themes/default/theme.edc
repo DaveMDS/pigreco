@@ -20,6 +20,7 @@ images {
    image: "bg.jpg" COMP;
    image: "pi.png" COMP;
    image: "pi_shad.png" COMP;
+   image: "pi_glow.png" COMP;
    image: "icon_pause.png" COMP;
    image: "icon_play.png" COMP;
 }
@@ -27,7 +28,6 @@ images {
 externals {
    external: "elementary";
 }
-
 
 collections {
 
@@ -38,7 +38,6 @@ collections {
       }
 
       parts {
-
          part { name: "bg";
             type: IMAGE;
             description { state: "default" 0.0;
@@ -46,10 +45,9 @@ collections {
                
             }
          }
-
          part { name: "bg.pi_shad";
             type: IMAGE;
-            description { state: "default" 0.0;
+            description { state: "default";
                image.normal: "pi_shad.png";
                aspect: 1 1;
                aspect_preference: BOTH;
@@ -57,10 +55,9 @@ collections {
                rel2.to: "bg.pi";
             }
          }
-
          part { name: "bg.pi";
             type: IMAGE;
-            description { state: "default" 0.0;
+            description { state: "default";
                image.normal: "pi.png";
                color: 150 150 150 150;
                aspect: 1 1;
@@ -70,6 +67,7 @@ collections {
             }
          }
 
+         
          part { name: "textgrid.swallow";
             type: SWALLOW;
             description { state: "default" 0.0;
@@ -77,7 +75,6 @@ collections {
                rel2.offset: -7 -7;
             }
          }
-
          part { name: "controls_clip";
             type: RECT;
             description { state: "default" 0.0;
@@ -117,7 +114,22 @@ collections {
                image.normal: "icon_play.png";
             }
          }
-
+         part { name: "bg.pi.glow";
+            type: IMAGE;
+            precise_is_inside: 1;
+            description { state: "default";
+               image.normal: "pi_glow.png";
+               rel1.to: "bg.pi";
+               rel2.to: "bg.pi";
+               color: 0 0 0 0;
+            }
+            description { state: "visible";
+               inherit: "default";
+               color: 200 200 200 200;
+               rel1.offset: -3 -3;
+               rel2.offset: 2 2;
+            }
+         }
          part { name: "events";
             type: RECT;
             repeat_events: 1;
@@ -125,6 +137,7 @@ collections {
                color: 0 0 0 0;
             }
          }
+
       }
       programs {
          program { // show controls
@@ -152,6 +165,20 @@ collections {
             signal: "autoscroll,pause,set"; source: "";
             action: STATE_SET "paused";
             target: "autoscroll_btn";
+         }
+         program { // pi glow show
+            signal: "mouse,in";
+            source: "bg.pi.glow";
+            action: STATE_SET "visible";
+            transition: SIN 1.0 CURRENT;
+            target: "bg.pi.glow";
+         }
+         program { // pi glow hide
+            signal: "mouse,out";
+            source: "bg.pi.glow";
+            action: STATE_SET "default";
+            transition: LINEAR 1.0 CURRENT;
+            target: "bg.pi.glow";
          }
       }
    }
