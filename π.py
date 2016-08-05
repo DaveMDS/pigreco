@@ -20,7 +20,14 @@ from efl.evas import EVAS_HINT_EXPAND, EVAS_HINT_FILL, \
     EVAS_TEXTGRID_PALETTE_STANDARD as PALETTE
 
 
+# setup efl logging
+import logging
+logger = logging.getLogger('efl')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.INFO)
 
+
+# command line argument parser
 parser = argparse.ArgumentParser(prog='pigreco',
                                  description='Fancy pi digits calculator.')
 parser.add_argument('-g', dest='generator',  type=str,
@@ -32,7 +39,6 @@ parser.add_argument('-r', dest='rows', type=int, default=20,
                     help='Number of rows')
 parser.add_argument('-t', dest='theme', type=str, default='theme.edj',
                     help='Edje theme file (default: theme.edj)')
-
 args = parser.parse_args()
 COLS = args.cols
 ROWS = args.rows
@@ -60,7 +66,7 @@ class PiWin(StandardWindow):
     def __init__(self, app):
 
         StandardWindow.__init__(self, 'pigreco', 'π', autodel=True)
-        self.callback_delete_request_add(lambda o: app.quit())
+        self.callback_delete_request_add(lambda o: elementary.exit())
 
         ly = Layout(self, file=(args.theme, 'pigreco/layout'))
         ly.signal_callback_add('autoscroll,toggle', '',
@@ -88,10 +94,6 @@ class PiWin(StandardWindow):
         self._scroll_timer = ecore.Timer(1.0, self._scroll_timer_cb)
         self.autoscroll_paused = False
 
-    def shutdown(self):
-        self._scroll_timer.delete()
-        self.delete()
-        
     def _scroll_timer_cb(self):
         self.scroll_slider.min_max = (1, len(self.app.lines))
         self.scroll_slider.value = self.tg.scroll_pos
@@ -182,16 +184,15 @@ class Pigreco(object):
         self.lines.append('3.' + ' ' * (COLS-2))
         self.win.tg.redraw()
 
-        
         self.generator_start(args.generator)
 
     def generator_start(self, command):
         self._start_time = self._line_time = time.time()
         self.exe = ecore.Exe('%s %s %d' % (sys.executable, command, COLS),
                              ecore.ECORE_EXE_PIPE_READ |
-                             ecore.ECORE_EXE_PIPE_READ_LINE_BUFFERED)
+                             ecore.ECORE_EXE_PIPE_READ_LINE_BUFFERED |
+                             ecore.ECORE_EXE_TERM_WITH_PARENT)
         self.exe.on_data_event_add(self._generator_stdout)
-        # exe.on_del_event_add(self._cmd_done)
 
     def _generator_stdout(self, exe, event):
         self.lines.extend(event.lines)
@@ -207,22 +208,7 @@ class Pigreco(object):
                          self.count, format_seconds(total_seconds),
                          num_digits / line_seconds)
 
-    def quit(self):
-        elementary.exit()
 
-    def cleanup(self):
-        self.win.shutdown()
-        if self.exe:
-            self.exe.terminate()
-        
-
-
-if __name__ == "__main__":
-    elementary.init()
-
-    app = Pigreco(args)
+if __name__ == '__main__':
+    Pigreco(args)
     elementary.run()
-
-    app.cleanup()
-    elementary.shutdown()
-
